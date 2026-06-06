@@ -13,4 +13,5 @@ public class RoomJoinedResponse {
     private PlayerColor assignedColor;
     private RoomStatus roomStatus;
     private String currentFen;
+    
 }
