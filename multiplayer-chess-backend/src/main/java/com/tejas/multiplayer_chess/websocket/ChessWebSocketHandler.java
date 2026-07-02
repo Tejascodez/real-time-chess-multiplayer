@@ -56,9 +56,11 @@ public class ChessWebSocketHandler {
             RoomJoinedResponse response = RoomJoinedResponse.builder()
                 .roomId(room.getRoomId())
                 .playerId(player.getId())
-                .assignedColor(player.getColor())
+                .assignedColor(roomService.getPlayerColor(room, request.getPlayerId()))
                 .roomStatus(room.getRoomStatus())
                 .currentFen(room.getCurrentFen())
+                .whiteUndoUsed(room.isWhiteUndoUsed())
+                .blackUndoUsed(room.isBlackUndoUsed())
                 .build();
 
             sendToSession(
@@ -128,6 +130,31 @@ public class ChessWebSocketHandler {
         } catch (Exception e) {
             log.error("Error handling move", e);
             sendError(sessionId, "Move processing failed: " + e.getMessage());
+        }
+    }
+
+    @MessageMapping("/undo")
+    public void handleUndo(
+            @Payload UndoRequest request,
+            @Header("simpSessionId") String sessionId
+    ) {
+        try {
+            UndoResponse result =
+                gameService.processUndo(
+                    request.getRoomId(),
+                    request.getPlayerId()
+                );
+
+            broadcastToRoom(request.getRoomId(),
+                WsMessage.builder()
+                    .type(MessageType.MOVE_UNDONE)
+                    .payload(result)
+                    .build()
+            );
+
+        } catch (Exception e) {
+            log.error("Error handling undo", e);
+            sendError(sessionId, "Undo failed: " + e.getMessage());
         }
     }
 

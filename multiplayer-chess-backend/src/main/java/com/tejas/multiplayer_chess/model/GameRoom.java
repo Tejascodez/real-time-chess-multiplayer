@@ -45,6 +45,10 @@ public class GameRoom implements Serializable {
 
     private boolean aiGame;
 
+    // Each player gets exactly one undo for the whole game
+    private boolean whiteUndoUsed;
+    private boolean blackUndoUsed;
+
     // Spectator session IDs
     @Builder.Default
     private List<String> spectatorSessionIds = new ArrayList<>();

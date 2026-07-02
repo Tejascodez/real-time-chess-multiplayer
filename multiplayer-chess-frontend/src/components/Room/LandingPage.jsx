@@ -9,7 +9,7 @@ function Particle({ style }) {
 }
 
 export function LandingPage() {
-  const [username, setUsername]   = useState('')
+  const [username, setUsername]   = useState(() => useGameStore.getState().username || '')
   const [roomInput, setRoomInput] = useState('')
   const [loading, setLoading]     = useState(false)
   const [particles, setParticles] = useState([])
@@ -164,6 +164,8 @@ export function LandingPage() {
             ...primaryBtnStyle,
             ...(!hasUser || loading ? disabledStyle : {}),
           }}
+          onMouseEnter={(e) => { if (hasUser && !loading) Object.assign(e.currentTarget.style, primaryBtnStyle, primaryBtnHoverStyle) }}
+          onMouseLeave={(e) => { if (hasUser && !loading) Object.assign(e.currentTarget.style, primaryBtnStyle) }}
         >
           {loading ? (
             <>
@@ -202,6 +204,8 @@ export function LandingPage() {
               ...secondaryBtnStyle,
               ...(!hasUser || !hasRoom || loading ? disabledStyle : {}),
             }}
+            onMouseEnter={(e) => { if (hasUser && hasRoom && !loading) Object.assign(e.currentTarget.style, secondaryBtnStyle, secondaryBtnHoverStyle) }}
+            onMouseLeave={(e) => { if (hasUser && hasRoom && !loading) Object.assign(e.currentTarget.style, secondaryBtnStyle) }}
           >
             Join
           </button>
@@ -266,6 +270,11 @@ const primaryBtnStyle = {
   transition: 'background 0.2s, box-shadow 0.2s, transform 0.1s',
 }
 
+const primaryBtnHoverStyle = {
+  background: '#8b5cf6',
+  boxShadow: '0 4px 16px rgba(139,92,246,0.35)',
+}
+
 const secondaryBtnStyle = {
   padding: '0.8rem 1.1rem',
   background: 'transparent',
@@ -277,6 +286,12 @@ const secondaryBtnStyle = {
   cursor: 'pointer',
   whiteSpace: 'nowrap',
   transition: 'all 0.2s',
+}
+
+const secondaryBtnHoverStyle = {
+  background: 'rgba(255,255,255,0.06)',
+  borderColor: 'rgba(255,255,255,0.22)',
+  color: '#fff',
 }
 
 const disabledStyle = {

@@ -8,7 +8,7 @@ const PIECES = [
   { value: 'n', label: '♞', name: 'Knight' },
 ]
 
-export function PromotionModal({ isOpen, onSelect }) {
+export function PromotionModal({ isOpen, onSelect, onClose }) {
 
   const { assignedColor } = useGameStore()
 
@@ -23,7 +23,7 @@ export function PromotionModal({ isOpen, onSelect }) {
     : PIECES
 
   return (
-    <Modal isOpen={isOpen}>
+    <Modal isOpen={isOpen} onClose={onClose}>
       <h2 className="text-xl font-bold text-center mb-6">Choose promotion piece</h2>
       <div className="flex justify-center gap-4">
         {pieces.map(({ value, label, name }) => (

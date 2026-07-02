@@ -1,8 +1,10 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { getTurnFromFen } from '../utils/chessUtils'
 
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
-export const useGameStore = create((set, get) => ({
+export const useGameStore = create(persist((set, get) => ({
 
   // ----------------------------------------------------------------
   //  Identity
@@ -27,6 +29,12 @@ export const useGameStore = create((set, get) => ({
   gameStatus:  'ONGOING', // matches backend GameStatus enum
 
   // ----------------------------------------------------------------
+  //  Undo — one-time use per player
+  // ----------------------------------------------------------------
+  whiteUndoUsed: false,
+  blackUndoUsed: false,
+
+  // ----------------------------------------------------------------
   //  Timers  (milliseconds)
   // ----------------------------------------------------------------
   whiteTimeMs: 600_000,
@@ -48,8 +56,21 @@ export const useGameStore = create((set, get) => ({
   // ----------------------------------------------------------------
   //  Actions — Room
   // ----------------------------------------------------------------
-  setRoomJoined: (roomId, assignedColor, roomStatus, fen) =>
-    set({ roomId, assignedColor, roomStatus, fen }),
+  setRoomJoined: (roomId, assignedColor, roomStatus, fen, whiteUndoUsed = false, blackUndoUsed = false) =>
+    set({
+      roomId,
+      assignedColor,
+      roomStatus,
+      fen,
+      currentTurn:          getTurnFromFen(fen),
+      moveHistory:          [],
+      gameOverInfo:         null,
+      inCheck:              false,
+      opponentDisconnected: false,
+      errorMessage:         null,
+      whiteUndoUsed,
+      blackUndoUsed,
+    }),
 
   setRoomStatus: (roomStatus) =>
     set({ roomStatus }),
@@ -67,6 +88,20 @@ export const useGameStore = create((set, get) => ({
         ...state.moveHistory,
         from + to + (promotion ?? ''),
       ],
+    })),
+
+  // ----------------------------------------------------------------
+  //  Actions — Move undone (from MOVE_UNDONE broadcast)
+  // ----------------------------------------------------------------
+  applyUndo: (newFen, nextTurn, inCheck, gameStatus, whiteUndoUsed, blackUndoUsed) =>
+    set((state) => ({
+      fen:         newFen,
+      currentTurn: nextTurn,
+      inCheck,
+      gameStatus,
+      moveHistory: state.moveHistory.slice(0, -1),
+      whiteUndoUsed,
+      blackUndoUsed,
     })),
 
   // ----------------------------------------------------------------
@@ -100,6 +135,8 @@ export const useGameStore = create((set, get) => ({
       inCheck:              false,
       moveHistory:          [],
       gameStatus:           'ONGOING',
+      whiteUndoUsed:        false,
+      blackUndoUsed:        false,
       whiteTimeMs:          600_000,
       blackTimeMs:          600_000,
       gameOverInfo:         null,
@@ -108,4 +145,9 @@ export const useGameStore = create((set, get) => ({
       roomStatus:           null,
       roomId:               null,
     }),
+}), {
+  name: 'chess-identity',
+  // Only identity needs to survive a reload — board/room state is
+  // re-fetched from the server on reconnect (see ROOM_JOINED handling).
+  partialize: (state) => ({ playerId: state.playerId, username: state.username }),
 }))

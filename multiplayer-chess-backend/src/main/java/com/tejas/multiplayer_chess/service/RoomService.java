@@ -154,6 +154,15 @@ public class RoomService {
         roomRepository.save(room);
     }
 
+    /**
+     * Resolves a player's assigned color from the room's actual stored
+     * players — needed because the caller's local Player object may not
+     * have its color set (e.g. on the reconnect path).
+     */
+    public PlayerColor getPlayerColor(GameRoom room, String playerId) {
+        return findPlayer(room, playerId).getColor();
+    }
+
     // ----------------------------------------------------------------
     //  Private helpers
     // ----------------------------------------------------------------

@@ -75,6 +75,76 @@ public class GameService {
             .build();
     }
 
+    public UndoResponse processUndo(String roomId, String playerId) {
+
+        GameRoom room = roomService.getRoom(roomId);
+
+        if (room.getRoomStatus() != RoomStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Game is not in progress");
+        }
+
+        if (room.getMoveHistory().isEmpty()) {
+            throw new IllegalStateException("No moves to undo");
+        }
+
+        Player player = getPlayer(room, playerId);
+        PlayerColor color = player.getColor();
+
+        boolean alreadyUsed = color == PlayerColor.WHITE
+            ? room.isWhiteUndoUsed()
+            : room.isBlackUndoUsed();
+
+        if (alreadyUsed) {
+            throw new IllegalStateException("Undo already used");
+        }
+
+        // Only the player who made the last move can take it back
+        PlayerColor lastMoverColor = room.getMoveHistory().size() % 2 == 1
+            ? PlayerColor.WHITE
+            : PlayerColor.BLACK;
+
+        if (lastMoverColor != color) {
+            throw new IllegalStateException("You can only undo your own last move");
+        }
+
+        room.getMoveHistory().remove(room.getMoveHistory().size() - 1);
+
+        ChessEngine engine = new ChessEngine();
+        for (String uci : room.getMoveHistory()) {
+            engine.makeMove(uciToMove(uci));
+        }
+
+        String newFen = engine.getCurrentFen();
+        room.setCurrentFen(newFen);
+        room.setLastMoveTimestamp(System.currentTimeMillis());
+
+        if (color == PlayerColor.WHITE) {
+            room.setWhiteUndoUsed(true);
+        } else {
+            room.setBlackUndoUsed(true);
+        }
+
+        roomService.saveRoom(room);
+
+        return UndoResponse.builder()
+            .newFen(newFen)
+            .nextTurn(engine.getCurrentTurn())
+            .inCheck(engine.isInCheck())
+            .gameStatus(engine.getGameStatus())
+            .undoneBy(color)
+            .whiteUndoUsed(room.isWhiteUndoUsed())
+            .blackUndoUsed(room.isBlackUndoUsed())
+            .build();
+    }
+
+    private ChessMove uciToMove(String uci) {
+        return ChessMove.builder()
+            .from(uci.substring(0, 2))
+            .to(uci.substring(2, 4))
+            .promotion(uci.length() > 4 ? uci.substring(4) : null)
+            .build();
+    }
+
     public GameOverResponse processResign(String roomId, String playerId) {
 
         GameRoom room = roomService.getRoom(roomId);

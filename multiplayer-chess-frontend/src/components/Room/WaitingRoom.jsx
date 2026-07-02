@@ -1,8 +1,12 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../../store/gameStore'
 
 export function WaitingRoom() {
 
   const { roomId, assignedColor } = useGameStore()
+  const navigate = useNavigate()
+  const [copied, setCopied] = useState(false)
 
   const copyRoomId = async () => {
 
@@ -10,7 +14,8 @@ export function WaitingRoom() {
 
     try {
       await navigator.clipboard.writeText(roomId)
-      console.log('Room ID copied')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
     } catch (err) {
       console.error('Failed to copy room ID', err)
     }
@@ -19,41 +24,19 @@ export function WaitingRoom() {
   // Prevent rendering before room exists
   if (!roomId) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-white">
+      <div className="min-h-screen flex items-center justify-center bg-primary text-white">
         Loading room...
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center bg-primary p-4 sm:p-6">
 
-      <div
-        className="
-          bg-surface
-          border border-gray-700
-          rounded-2xl
-          p-8
-          w-full
-          max-w-md
-          text-center
-          shadow-2xl
-        "
-      >
+      <div className="w-full max-w-md rounded-[20px] border border-white/8 bg-surface p-8 sm:p-10 text-center shadow-2xl">
 
         {/* Spinner */}
-        <div
-          className="
-            w-16 h-16
-            border-4
-            border-accent
-            border-t-transparent
-            rounded-full
-            animate-spin
-            mx-auto
-            mb-6
-          "
-        />
+        <div className="mx-auto mb-6 h-16 w-16 rounded-full border-4 border-accent border-t-transparent animate-spin" />
 
         <h2 className="text-2xl font-bold mb-2">
           Waiting for opponent
@@ -62,12 +45,12 @@ export function WaitingRoom() {
         <p className="text-gray-400 mb-6">
           You are playing as{' '}
           <span className="text-white font-semibold">
-            {assignedColor}
+            {assignedColor === 'WHITE' ? '♔ White' : '♚ Black'}
           </span>
         </p>
 
         {/* Room ID */}
-        <div className="bg-primary rounded-xl p-4 mb-4">
+        <div className="rounded-xl bg-primary border border-white/6 p-4 mb-4">
 
           <p className="text-sm text-gray-400 mb-2">
             Share this Room ID
@@ -75,37 +58,30 @@ export function WaitingRoom() {
 
           <div className="flex items-center gap-2">
 
-            <code
-              className="
-                flex-1
-                text-accent
-                font-mono
-                text-sm
-                break-all
-              "
-            >
+            <code className="flex-1 text-accent-light font-mono text-sm break-all text-left">
               {roomId}
             </code>
 
             <button
               onClick={copyRoomId}
-              className="
-                text-gray-400
-                hover:text-white
-                transition-colors
-                text-sm
-                px-2
-              "
+              className="text-gray-400 hover:text-white transition-colors text-sm px-2 shrink-0"
             >
-              Copy
+              {copied ? 'Copied ✓' : 'Copy'}
             </button>
 
           </div>
         </div>
 
-        <p className="text-gray-600 text-sm">
+        <p className="text-gray-600 text-sm mb-6">
           Game starts automatically when opponent joins
         </p>
+
+        <button
+          onClick={() => navigate('/')}
+          className="text-sm text-gray-500 hover:text-white transition-colors"
+        >
+          ← Leave room
+        </button>
 
       </div>
     </div>

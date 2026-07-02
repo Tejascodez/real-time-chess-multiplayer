@@ -13,5 +13,7 @@ public class RoomJoinedResponse {
     private PlayerColor assignedColor;
     private RoomStatus roomStatus;
     private String currentFen;
-    
+    private boolean whiteUndoUsed;
+    private boolean blackUndoUsed;
+
 }

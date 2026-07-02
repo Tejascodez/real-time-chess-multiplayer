@@ -1,14 +1,40 @@
 @import "tailwindcss";
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@theme {
+  --color-primary: #0f1117;
+  --color-surface: #1a1d27;
+  --color-surface-hover: #22262f;
+  --color-accent: #7c3aed;
+  --color-accent-light: #8b5cf6;
 }
 
-body {
-  background-color: #1a1a2e;
-  color: #ffffff;
-  font-family: 'Inter', system-ui, sans-serif;
-  min-height: 100vh;
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+}
+
+/* Thin dark scrollbar for scrollable panels (move history, etc.) */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
 }

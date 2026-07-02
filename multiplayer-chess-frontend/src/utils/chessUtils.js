@@ -59,3 +59,25 @@ export function getResultMessage(gameOverInfo, playerId) {
 export function generatePlayerId() {
   return 'player_' + Math.random().toString(36).slice(2, 9)
 }
+
+/**
+ * Read whose turn it is from a FEN's active-color field
+ * e.g. "...  w KQkq - 0 1" → 'WHITE', "... b ..." → 'BLACK'
+ */
+export function getTurnFromFen(fen) {
+  return fen?.split(' ')[1] === 'b' ? 'BLACK' : 'WHITE'
+}
+
+/**
+ * Find the square a given color's king is on (for check highlighting)
+ */
+export function findKingSquare(chess, color) {
+  for (const row of chess.board()) {
+    for (const piece of row) {
+      if (piece && piece.type === 'k' && piece.color === color) {
+        return piece.square
+      }
+    }
+  }
+  return null
+}

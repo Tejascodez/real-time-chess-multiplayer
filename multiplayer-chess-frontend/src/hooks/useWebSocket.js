@@ -21,6 +21,7 @@ export function useWebSocket() {
     setRoomJoined,
     setRoomStatus,
     applyMove,
+    applyUndo,
     updateTimers,
     setGameOver,
     setOpponentDisconnected,
@@ -165,7 +166,9 @@ export function useWebSocket() {
           payload.roomId,
           payload.assignedColor,
           payload.roomStatus,
-          payload.currentFen
+          payload.currentFen,
+          payload.whiteUndoUsed,
+          payload.blackUndoUsed
         )
 
         if (stompClient.current) {
@@ -207,6 +210,22 @@ export function useWebSocket() {
         updateTimers(
           payload.whiteTimeRemainingMs,
           payload.blackTimeRemainingMs
+        )
+
+        break
+      }
+
+      case 'MOVE_UNDONE': {
+
+        console.log('↩️ MOVE_UNDONE RECEIVED', payload)
+
+        applyUndo(
+          payload.newFen,
+          payload.nextTurn,
+          payload.inCheck,
+          payload.gameStatus,
+          payload.whiteUndoUsed,
+          payload.blackUndoUsed
         )
 
         break
@@ -289,6 +308,7 @@ export function useWebSocket() {
     setRoomJoined,
     setRoomStatus,
     applyMove,
+    applyUndo,
     updateTimers,
     setGameOver,
     setOpponentDisconnected,
@@ -371,6 +391,24 @@ export function useWebSocket() {
   }, [])
 
   // ------------------------------------------------------------
+  // SEND UNDO
+  // ------------------------------------------------------------
+
+  const sendUndo = useCallback((roomId, playerId) => {
+
+    stompClient.current?.publish({
+
+      destination: '/app/undo',
+
+      body: JSON.stringify({
+        roomId,
+        playerId,
+      }),
+    })
+
+  }, [])
+
+  // ------------------------------------------------------------
   // DISCONNECT
   // ------------------------------------------------------------
 
@@ -393,6 +431,7 @@ export function useWebSocket() {
     sendJoin,
     sendMove,
     sendResign,
+    sendUndo,
     disconnect,
     stompClient,
   }
